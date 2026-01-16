@@ -1,0 +1,80 @@
+.user-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.user-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #f9f9f9;
+}
+
+.user-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.user-card.selected {
+  border-color: #3498db;
+  background: #e8f4f8;
+}
+
+.user-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.user-card-header h3 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+.username {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+}
+
+.user-email {
+  color: #555;
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+}
+
+.user-bio {
+  color: #666;
+  margin: 0.5rem 0;
+  font-style: italic;
+}
+
+.user-stats {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #ddd;
+  font-size: 0.85rem;
+  color: #7f8c8d;
+}
+
+.loading,
+.error {
+  padding: 2rem;
+  text-align: center;
+}
+
+.error {
+  color: #e74c3c;
+  background: #ffeaea;
+  border: 1px solid #e74c3c;
+  border-radius: 4px;
+}
+
+.loading {
+  color: #3498db;
+}
