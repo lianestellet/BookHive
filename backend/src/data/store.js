@@ -125,6 +125,12 @@ export const dataStore = {
       posts.push(newPost);
       return newPost;
     },
+    update: (id, postData) => {
+      const index = posts.findIndex((p) => p.id === id);
+      if (index === -1) return null;
+      posts[index] = { ...posts[index], ...postData };
+      return posts[index];
+    },
     delete: (id) => {
       const index = posts.findIndex((p) => p.id === id);
       if (index === -1) return false;

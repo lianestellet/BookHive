@@ -42,6 +42,11 @@ export interface PostInput {
   content: string;
 }
 
+export interface UpdatePostInput {
+  title?: string;
+  content?: string;
+}
+
 // Relationship types
 export interface Relationship {
   id: string;
@@ -101,6 +106,10 @@ export interface DeleteUserResponse {
 
 export interface CreatePostResponse {
   createPost: Post;
+}
+
+export interface UpdatePostResponse {
+  updatePost: Post;
 }
 
 export interface DeletePostResponse {

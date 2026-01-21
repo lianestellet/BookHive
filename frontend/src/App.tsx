@@ -5,59 +5,83 @@ import PostForm from './components/PostForm';
 import RelationshipManager from './components/RelationshipManager';
 import './App.css';
 
+type TabType = 'hive' | 'books' | 'connections';
+
 function App() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'users' | 'posts' | 'relationships'>('users');
+  const [activeTab, setActiveTab] = useState<TabType>('hive');
+
+  const tabs: { id: TabType; label: string; icon: string }[] = [
+    { id: 'hive', label: 'The Hive', icon: '🐝' },
+    { id: 'books', label: 'Book Buzz', icon: '📚' },
+    { id: 'connections', label: 'Connections', icon: '🍯' },
+  ];
 
   return (
     <div className="app">
       <header className="app-header">
-        <h1>GraphQL Training Application</h1>
-        <nav className="nav-tabs">
-          <button
-            className={activeTab === 'users' ? 'active' : ''}
-            onClick={() => setActiveTab('users')}
-          >
-            Users
-          </button>
-          <button
-            className={activeTab === 'posts' ? 'active' : ''}
-            onClick={() => setActiveTab('posts')}
-          >
-            Posts
-          </button>
-          <button
-            className={activeTab === 'relationships' ? 'active' : ''}
-            onClick={() => setActiveTab('relationships')}
-          >
-            Relationships
-          </button>
-        </nav>
+        <div className="header-content">
+          <div className="brand">
+            <span className="brand-icon">🐝</span>
+            <div className="brand-text">
+              <h1>BookHivez</h1>
+              <span className="tagline">Share Your Reading Journey</span>
+            </div>
+          </div>
+          
+          <nav className="nav-tabs">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                className={`nav-tab ${activeTab === tab.id ? 'active' : ''}`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <span className="nav-icon">{tab.icon}</span>
+                <span className="nav-label">{tab.label}</span>
+              </button>
+            ))}
+          </nav>
+        </div>
       </header>
 
       <main className="app-main">
-        {activeTab === 'users' && (
-          <div className="content-section">
-            <h2>Users</h2>
-            <UserList onUserSelect={setSelectedUserId} selectedUserId={selectedUserId} />
-          </div>
-        )}
+        <div className="content-section buzz-in" key={activeTab}>
+          {activeTab === 'hive' && (
+            <>
+              <div className="section-header">
+                <h2>🐝 The Hive</h2>
+                <p className="section-description">Meet the busy bees in our reading community</p>
+              </div>
+              <UserList onUserSelect={setSelectedUserId} selectedUserId={selectedUserId} />
+            </>
+          )}
 
-        {activeTab === 'posts' && (
-          <div className="content-section">
-            <h2>Posts</h2>
-            <PostForm />
-            <PostList userId={selectedUserId} />
-          </div>
-        )}
+          {activeTab === 'books' && (
+            <>
+              <div className="section-header">
+                <h2>📚 Book Buzz</h2>
+                <p className="section-description">Share and discover what everyone's reading</p>
+              </div>
+              <PostForm />
+              <PostList userId={selectedUserId} />
+            </>
+          )}
 
-        {activeTab === 'relationships' && (
-          <div className="content-section">
-            <h2>Relationships</h2>
-            <RelationshipManager />
-          </div>
-        )}
+          {activeTab === 'connections' && (
+            <>
+              <div className="section-header">
+                <h2>🍯 Connections</h2>
+                <p className="section-description">Build your network of book lovers</p>
+              </div>
+              <RelationshipManager />
+            </>
+          )}
+        </div>
       </main>
+
+      <footer className="app-footer">
+        <p>Made with 🍯 by BookHivez • Buzz together, read forever</p>
+      </footer>
     </div>
   );
 }

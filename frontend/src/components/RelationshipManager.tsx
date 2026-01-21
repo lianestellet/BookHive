@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import toast from 'react-hot-toast';
 import { useRelationships, useUsers } from '../hooks';
 import type { User } from '../types';
 import './RelationshipManager.css';
@@ -124,12 +125,24 @@ const RelationshipModal: React.FC<RelationshipModalProps> = ({
   }, [users, user.id, followingIds, searchQuery]);
 
   const handleFollow = async (followingId: string) => {
-    await follow(followingId);
+    try {
+      await follow(followingId);
+      const followedUser = users.find(u => u.id === followingId);
+      toast.success(`Now following ${followedUser?.name || 'user'}!`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to follow user';
+      toast.error(message);
+    }
   };
 
   const handleUnfollow = async (followingId: string) => {
-    if (window.confirm('Are you sure you want to unfollow this user?')) {
+    try {
       await unfollow(followingId);
+      const unfollowedUser = users.find(u => u.id === followingId);
+      toast.success(`Unfollowed ${unfollowedUser?.name || 'user'}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to unfollow user';
+      toast.error(message);
     }
   };
 

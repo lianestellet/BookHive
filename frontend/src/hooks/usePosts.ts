@@ -1,11 +1,13 @@
 import { useQuery, useMutation } from '@apollo/client';
 import { GET_POSTS, GET_USERS } from '../graphql/queries';
-import { CREATE_POST, DELETE_POST } from '../graphql/mutations';
+import { CREATE_POST, UPDATE_POST, DELETE_POST } from '../graphql/mutations';
 import type {
   Post,
   PostInput,
+  UpdatePostInput,
   PostsQueryResponse,
   CreatePostResponse,
+  UpdatePostResponse,
   DeletePostResponse,
 } from '../types';
 
@@ -19,6 +21,7 @@ interface UsePostsReturn {
   error: Error | undefined;
   refetch: () => void;
   createPost: (input: PostInput) => Promise<Post | undefined>;
+  updatePost: (id: string, input: UpdatePostInput) => Promise<Post | undefined>;
   deletePost: (id: string) => Promise<boolean>;
 }
 
@@ -34,15 +37,34 @@ export function usePosts(options: UsePostsOptions = {}): UsePostsReturn {
   });
 
   const [createPostMutation] = useMutation<CreatePostResponse>(CREATE_POST, {
-    // Refetch queries to update both posts list and user stats
-    refetchQueries: [
-      { query: GET_POSTS },
-      { query: GET_POSTS, variables },
-      { query: GET_USERS },
-    ],
+    // Update cache directly for immediate UI feedback
+    update: (cache, { data: mutationData }) => {
+      if (!mutationData?.createPost) return;
+
+      const newPost = mutationData.createPost;
+
+      // Add to the general posts list
+      cache.modify({
+        fields: {
+          posts(existingPosts = []) {
+            const newPostRef = { __ref: `Post:${newPost.id}` };
+            // Check if post already exists to avoid duplicates
+            const exists = existingPosts.some(
+              (ref: { __ref: string }) => ref.__ref === newPostRef.__ref
+            );
+            if (exists) return existingPosts;
+            return [newPostRef, ...existingPosts];
+          },
+        },
+      });
+    },
+    // Refetch queries to update user stats
+    refetchQueries: [{ query: GET_USERS }],
     // Ensure refetch happens after mutation completes
     awaitRefetchQueries: true,
   });
+
+  const [updatePostMutation] = useMutation<UpdatePostResponse>(UPDATE_POST);
 
   const [deletePostMutation] = useMutation<DeletePostResponse>(DELETE_POST, {
     // Update cache directly for immediate UI feedback
@@ -74,6 +96,11 @@ export function usePosts(options: UsePostsOptions = {}): UsePostsReturn {
     return result.data?.createPost;
   };
 
+  const updatePost = async (id: string, input: UpdatePostInput): Promise<Post | undefined> => {
+    const result = await updatePostMutation({ variables: { id, input } });
+    return result.data?.updatePost;
+  };
+
   const deletePost = async (id: string): Promise<boolean> => {
     const result = await deletePostMutation({ variables: { id } });
     return result.data?.deletePost ?? false;
@@ -85,6 +112,7 @@ export function usePosts(options: UsePostsOptions = {}): UsePostsReturn {
     error,
     refetch,
     createPost,
+    updatePost,
     deletePost,
   };
 }

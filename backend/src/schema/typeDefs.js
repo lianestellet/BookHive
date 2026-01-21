@@ -59,6 +59,11 @@ export const typeDefs = `
     content: String!
   }
 
+  input UpdatePostInput {
+    title: String
+    content: String
+  }
+
   input RelationshipInput {
     followerId: ID!
     followingId: ID!
@@ -78,6 +83,7 @@ export const typeDefs = `
     updateUser(id: ID!, input: UpdateUserInput!): User
     deleteUser(id: ID!): Boolean!
     createPost(input: PostInput!): Post!
+    updatePost(id: ID!, input: UpdatePostInput!): Post
     deletePost(id: ID!): Boolean!
     followUser(followerId: ID!, followingId: ID!): Relationship!
     unfollowUser(followerId: ID!, followingId: ID!): Boolean!

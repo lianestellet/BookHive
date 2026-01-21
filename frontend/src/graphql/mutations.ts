@@ -39,6 +39,20 @@ export const CREATE_POST = gql`
   ${POST_FRAGMENT}
 `;
 
+export const UPDATE_POST = gql`
+  mutation UpdatePost($id: ID!, $input: UpdatePostInput!) {
+    updatePost(id: $id, input: $input) {
+      ...PostFields
+      user {
+        id
+        username
+        name
+      }
+    }
+  }
+  ${POST_FRAGMENT}
+`;
+
 export const DELETE_POST = gql`
   mutation DeletePost($id: ID!) {
     deletePost(id: $id)

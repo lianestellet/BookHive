@@ -1,107 +1,143 @@
 .post-form {
-  background: #f9f9f9;
+  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-cream) 100%);
   padding: 1.5rem;
-  border-radius: 8px;
-  border: 1px solid #ddd;
+  border-radius: var(--radius-lg);
+  border: 2px solid rgba(245, 166, 35, 0.15);
   margin-bottom: 2rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .post-form-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  gap: 1rem;
 }
 
 .post-form-header h3 {
   margin: 0;
-  color: #2c3e50;
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 1.25rem;
 }
 
-.post-form-header .generate-random-button {
-  background: linear-gradient(135deg, #9b59b6, #8e44ad);
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
+.generate-icon-button {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--honey-gold);
+  background: linear-gradient(135deg, rgba(245, 166, 35, 0.15) 0%, rgba(245, 166, 35, 0.05) 100%);
+  font-size: 1.25rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 }
 
-.post-form-header .generate-random-button:hover {
-  background: linear-gradient(135deg, #8e44ad, #7d3c98);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(142, 68, 173, 0.3);
+.generate-icon-button:hover {
+  background: linear-gradient(135deg, var(--honey-gold) 0%, var(--honey-dark) 100%);
+  transform: scale(1.1);
+  box-shadow: var(--shadow-glow);
 }
 
-.post-form-header .generate-random-button:active {
-  transform: translateY(0);
+.generate-icon-button:active {
+  transform: scale(0.95);
+}
+
+/* Sparkle animation */
+.sparkle {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  animation: sparkleFloat 0.9s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes sparkleFloat {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -80px) scale(0.2) rotate(180deg);
+  }
 }
 
 .form-group {
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
-  color: #555;
-  font-weight: 500;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .form-group input,
 .form-group textarea {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 0.875rem;
+  border: 2px solid #E0E0E0;
+  border-radius: var(--radius-md);
   font-family: inherit;
   font-size: 1rem;
   box-sizing: border-box;
+  transition: all var(--transition-fast);
+  background: white;
 }
 
 .form-group textarea {
   resize: vertical;
-  min-height: 100px;
+  min-height: 120px;
 }
 
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+  border-color: var(--honey-gold);
+  box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.2);
 }
 
 .submit-button {
-  background: #3498db;
+  background: linear-gradient(135deg, var(--honey-gold) 0%, var(--honey-dark) 100%);
   color: white;
   border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
+  padding: 0.875rem 2rem;
+  border-radius: var(--radius-md);
   font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-normal);
 }
 
 .submit-button:hover:not(:disabled) {
-  background: #2980b9;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
 }
 
 .submit-button:disabled {
-  background: #95a5a6;
+  background: #BDBDBD;
   cursor: not-allowed;
 }
 
 .error-message {
-  background: #ffeaea;
-  color: #e74c3c;
-  padding: 0.75rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  border: 1px solid #e74c3c;
+  background: var(--danger-light);
+  color: var(--danger);
+  padding: 0.875rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: 1.25rem;
+  border: 1px solid var(--danger);
+  font-size: 0.9rem;
 }
 
 /* User Select Dropdown Styles */
@@ -111,18 +147,20 @@
 
 .user-search-input {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 0.875rem;
+  border: 2px solid #E0E0E0;
+  border-radius: var(--radius-md);
   font-family: inherit;
   font-size: 1rem;
   box-sizing: border-box;
+  transition: all var(--transition-fast);
+  background: white;
 }
 
 .user-search-input:focus {
   outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+  border-color: var(--honey-gold);
+  box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.2);
 }
 
 .user-dropdown {
@@ -131,45 +169,47 @@
   left: 0;
   right: 0;
   background: white;
-  border: 1px solid #ddd;
+  border: 2px solid var(--honey-gold);
   border-top: none;
-  border-radius: 0 0 4px 4px;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
   max-height: 200px;
   overflow-y: auto;
   z-index: 100;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
 }
 
 .user-dropdown-item {
-  padding: 0.75rem;
+  padding: 0.875rem;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: background 0.15s;
+  transition: background var(--transition-fast);
 }
 
 .user-dropdown-item:hover {
-  background: #f0f7ff;
+  background: var(--bg-hover);
 }
 
 .user-dropdown-item.selected {
-  background: #e8f4fd;
+  background: var(--bg-hover);
+  border-left: 3px solid var(--honey-gold);
 }
 
 .user-dropdown-item .user-name {
-  font-weight: 500;
-  color: #2c3e50;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .user-dropdown-item .user-username {
-  color: #7f8c8d;
+  color: var(--honey-dark);
   font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .user-dropdown-empty {
-  padding: 0.75rem;
-  color: #7f8c8d;
+  padding: 1rem;
+  color: var(--text-muted);
   text-align: center;
   font-style: italic;
 }

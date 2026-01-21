@@ -1,8 +1,17 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import { faker } from '@faker-js/faker';
 import { usePosts, useUsers } from '../hooks';
 import type { User } from '../types';
 import './PostForm.css';
+
+interface Sparkle {
+  id: number;
+  x: number;
+  y: number;
+  size: number;
+  delay: number;
+}
 
 const PostForm: React.FC = () => {
   const [title, setTitle] = useState('');
@@ -12,6 +21,7 @@ const PostForm: React.FC = () => {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [sparkles, setSparkles] = useState<Sparkle[]>([]);
 
   const { createPost } = usePosts();
   const { users, loading: usersLoading } = useUsers();
@@ -34,7 +44,36 @@ const PostForm: React.FC = () => {
     setIsUserDropdownOpen(false);
   };
 
-  const generatePostContent = () => {
+  const createSparkles = useCallback((e: React.MouseEvent) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    const newSparkles: Sparkle[] = [];
+    for (let i = 0; i < 24; i++) {
+      // Create sparkles in a wider circular pattern
+      const angle = (i / 24) * Math.PI * 2 + Math.random() * 0.5;
+      const distance = 60 + Math.random() * 120;
+      
+      newSparkles.push({
+        id: Date.now() + i,
+        x: centerX + Math.cos(angle) * distance,
+        y: centerY + Math.sin(angle) * distance,
+        size: 0.5 + Math.random() * 0.7, // Size between 0.5rem and 1.2rem
+        delay: Math.random() * 0.15, // Stagger the animation slightly
+      });
+    }
+    
+    setSparkles(prev => [...prev, ...newSparkles]);
+    
+    // Remove sparkles after animation
+    setTimeout(() => {
+      setSparkles(prev => prev.filter(s => !newSparkles.find(ns => ns.id === s.id)));
+    }, 1000);
+  }, []);
+
+  const generatePostContent = (e: React.MouseEvent) => {
+    createSparkles(e);
     setTitle(faker.book.title());
     setContent(faker.book.series());
   };
@@ -42,11 +81,11 @@ const PostForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId) {
-      setError('Please select a user');
+      toast.error('Please select a user');
       return;
     }
     if (!title.trim() || !content.trim()) {
-      setError('Title and content are required');
+      toast.error('Title and content are required');
       return;
     }
 
@@ -61,8 +100,11 @@ const PostForm: React.FC = () => {
       });
       setTitle('');
       setContent('');
+      toast.success('Post created successfully!');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create post');
+      const message = err instanceof Error ? err.message : 'Failed to create post';
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -70,12 +112,33 @@ const PostForm: React.FC = () => {
 
   return (
     <form className="post-form" onSubmit={handleSubmit}>
+      {/* Sparkle container */}
+      {sparkles.map(sparkle => (
+        <div
+          key={sparkle.id}
+          className="sparkle"
+          style={{
+            left: sparkle.x,
+            top: sparkle.y,
+            fontSize: `${sparkle.size}rem`,
+            animationDelay: `${sparkle.delay}s`,
+          }}
+        >
+          ✨
+        </div>
+      ))}
+      
       <div className="post-form-header">
         <h3>Create New Post</h3>
-      </div>
-        <button type="button" className="generate-random-button" onClick={generatePostContent}>
-          🎲 Generate Post Content
+        <button 
+          type="button" 
+          className="generate-icon-button" 
+          onClick={generatePostContent}
+          title="Auto-fill with book data"
+        >
+          🪄
         </button>
+      </div>
       {error && <div className="error-message">{error}</div>}
       
       <div className="form-group">

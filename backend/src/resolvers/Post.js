@@ -31,6 +31,14 @@ export const postResolvers = {
       });
       return newPost;
     },
+    updatePost: (parent, args) => {
+      const { id, input } = args;
+      const post = dataStore.posts.getById(id);
+      if (!post) {
+        throw new Error('Post not found');
+      }
+      return dataStore.posts.update(id, input);
+    },
     deletePost: (parent, args) => {
       return dataStore.posts.delete(args.id);
     },

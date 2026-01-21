@@ -1,20 +1,40 @@
 .post-list {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
   margin-top: 1.5rem;
 }
 
 .post-card {
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  border: 2px solid transparent;
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
-  background: #f9f9f9;
-  transition: all 0.2s;
+  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-cream) 100%);
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  cursor: pointer;
+}
+
+.post-card::before {
+  content: '📖';
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.5rem;
+  opacity: 0.15;
+  transition: all var(--transition-normal);
 }
 
 .post-card:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-color: var(--honey-gold);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.post-card:hover::before {
+  opacity: 0.3;
+  transform: rotate(-5deg) scale(1.1);
 }
 
 .post-header {
@@ -22,44 +42,31 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 1rem;
+  gap: 1rem;
 }
 
 .post-header h3 {
   margin: 0 0 0.5rem 0;
-  color: #2c3e50;
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 1.15rem;
+  line-height: 1.4;
 }
 
 .post-author {
-  color: #7f8c8d;
+  color: var(--honey-dark);
   font-size: 0.9rem;
   margin: 0;
+  font-weight: 500;
 }
 
-.delete-button {
-  background: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  font-size: 1.5rem;
-  line-height: 1;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.delete-button:hover {
-  background: #c0392b;
-  transform: scale(1.1);
-}
 
 .post-content {
-  color: #555;
-  line-height: 1.6;
+  color: var(--text-secondary);
+  line-height: 1.7;
   margin: 1rem 0;
+  font-size: 0.95rem;
+  white-space: pre-wrap;
 }
 
 .post-footer {
@@ -67,18 +74,370 @@
   justify-content: space-between;
   align-items: center;
   padding-top: 1rem;
-  border-top: 1px solid #ddd;
+  border-top: 1px dashed rgba(245, 166, 35, 0.3);
   margin-top: 1rem;
 }
 
 .post-date {
-  color: #7f8c8d;
+  color: var(--text-muted);
   font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.post-date::before {
+  content: '🗓️';
+  font-size: 0.9rem;
 }
 
 .empty-state {
   text-align: center;
   padding: 3rem;
-  color: #7f8c8d;
+  color: var(--text-muted);
   font-style: italic;
+  background: var(--bg-cream);
+  border-radius: var(--radius-lg);
+  border: 2px dashed rgba(245, 166, 35, 0.3);
+}
+
+.empty-state::before {
+  content: '📚';
+  display: block;
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: var(--honey-dark);
+}
+
+.error {
+  text-align: center;
+  padding: 2rem;
+  color: var(--danger);
+  background: var(--danger-light);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--danger);
+}
+
+/* Post Modal */
+.post-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.post-modal {
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  width: 100%;
+  max-width: 550px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: var(--shadow-lg);
+  animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.post-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: var(--bg-cream);
+  border-radius: 50%;
+  font-size: 1.5rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.post-modal-close:hover {
+  background: var(--honey-light);
+  color: var(--text-primary);
+}
+
+.post-modal-header {
+  padding: 2rem 2rem 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.post-modal-icon {
+  font-size: 2.5rem;
+  flex-shrink: 0;
+}
+
+.post-modal-header h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.3;
+  padding-right: 2rem;
+}
+
+.post-modal-meta {
+  padding: 0 2rem 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.post-modal-author {
+  color: var(--honey-dark);
+  font-weight: 600;
+}
+
+.post-modal-date {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.post-modal-date::before {
+  content: '🗓️';
+  font-size: 0.85rem;
+}
+
+.post-modal-content {
+  padding: 1.5rem 2rem;
+  background: var(--bg-cream);
+  color: var(--text-secondary);
+  line-height: 1.8;
+  font-size: 1rem;
+  white-space: pre-wrap;
+  border-top: 1px solid rgba(245, 166, 35, 0.2);
+  border-bottom: 1px solid rgba(245, 166, 35, 0.2);
+}
+
+.post-modal-actions {
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.post-modal-edit-btn {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, var(--honey-gold) 0%, var(--honey-dark) 100%);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.post-modal-edit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+}
+
+.post-modal-delete-btn {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  color: var(--danger);
+  border: 2px solid var(--danger-light);
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.post-modal-delete-btn:hover {
+  background: var(--danger);
+  color: white;
+  border-color: var(--danger);
+}
+
+/* Edit mode styles */
+.post-modal-title-input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  border: 2px solid var(--honey-gold);
+  border-radius: var(--radius-md);
+  background: var(--bg-cream);
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.post-modal-title-input:focus {
+  box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.2);
+}
+
+.post-modal-edit-content {
+  padding: 1.5rem 2rem;
+}
+
+.post-modal-content-input {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  border: 2px solid var(--honey-gold);
+  border-radius: var(--radius-md);
+  background: var(--bg-cream);
+  outline: none;
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.6;
+  font-family: inherit;
+  transition: all var(--transition-fast);
+}
+
+.post-modal-content-input:focus {
+  box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.2);
+}
+
+.post-modal-edit-actions {
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  border-top: 1px solid rgba(245, 166, 35, 0.2);
+}
+
+.post-modal-edit-actions .cancel-btn {
+  padding: 0.75rem 1.5rem;
+  background: var(--bg-cream);
+  color: var(--text-secondary);
+  border: 2px solid #E0E0E0;
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.post-modal-edit-actions .cancel-btn:hover:not(:disabled) {
+  background: var(--bg-hover);
+  border-color: var(--honey-gold);
+}
+
+.post-modal-edit-actions .save-btn {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, var(--honey-gold) 0%, var(--honey-dark) 100%);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.post-modal-edit-actions .save-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+}
+
+.post-modal-edit-actions .save-btn:disabled,
+.post-modal-edit-actions .cancel-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.post-modal-confirm-delete {
+  padding: 1.5rem 2rem;
+  text-align: center;
+}
+
+.post-modal-confirm-delete p {
+  margin: 0 0 1rem;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.post-modal-confirm-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.post-modal-confirm-actions .cancel-btn {
+  padding: 0.75rem 1.5rem;
+  background: var(--bg-cream);
+  color: var(--text-secondary);
+  border: 2px solid #E0E0E0;
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.post-modal-confirm-actions .cancel-btn:hover:not(:disabled) {
+  background: var(--bg-hover);
+  border-color: var(--honey-gold);
+}
+
+.post-modal-confirm-actions .cancel-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.post-modal-confirm-actions .confirm-delete-btn {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, var(--danger) 0%, #C62828 100%);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.post-modal-confirm-actions .confirm-delete-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(229, 57, 53, 0.4);
+}
+
+.post-modal-confirm-actions .confirm-delete-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

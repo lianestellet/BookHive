@@ -1,8 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import { faker } from '@faker-js/faker';
 import { useUsers } from '../hooks';
 import type { User, UserInput, UpdateUserInput } from '../types';
 import './UserList.css';
+
+interface Sparkle {
+  id: number;
+  x: number;
+  y: number;
+  size: number;
+  delay: number;
+}
 
 interface UserListProps {
   onUserSelect?: (userId: string) => void;
@@ -23,15 +32,13 @@ const UserList: React.FC<UserListProps> = ({ onUserSelect, selectedUserId }) => 
     setIsModalOpen(true);
   };
 
-  const handleEditClick = (e: React.MouseEvent, user: User) => {
-    e.stopPropagation();
+  const handleUserCardClick = (user: User) => {
     setEditingUser(user);
     setFormError(null);
     setIsModalOpen(true);
   };
 
-  const handleDeleteClick = (e: React.MouseEvent, user: User) => {
-    e.stopPropagation();
+  const handleDeleteRequest = (user: User) => {
     setUserToDelete(user);
   };
 
@@ -45,8 +52,12 @@ const UserList: React.FC<UserListProps> = ({ onUserSelect, selectedUserId }) => 
         onUserSelect?.(users.find(u => u.id !== userToDelete.id)?.id || '');
       }
       setUserToDelete(null);
+      setIsModalOpen(false);
+      setEditingUser(null);
+      toast.success('User deleted successfully!');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete user');
+      const message = err instanceof Error ? err.message : 'Failed to delete user';
+      toast.error(message);
     } finally {
       setIsDeleting(false);
     }
@@ -69,12 +80,16 @@ const UserList: React.FC<UserListProps> = ({ onUserSelect, selectedUserId }) => 
         if (data.bio !== editingUser.bio) updateData.bio = data.bio;
         
         await updateUser(editingUser.id, updateData);
+        toast.success('User updated successfully!');
       } else {
         await createUser(data);
+        toast.success('User created successfully!');
       }
       handleCloseModal();
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'An error occurred');
+      const message = err instanceof Error ? err.message : 'An error occurred';
+      setFormError(message);
+      toast.error(message);
     }
   };
 
@@ -94,28 +109,12 @@ const UserList: React.FC<UserListProps> = ({ onUserSelect, selectedUserId }) => 
           <div
             key={user.id}
             className={`user-card ${selectedUserId === user.id ? 'selected' : ''}`}
-            onClick={() => onUserSelect?.(user.id)}
+            onClick={() => handleUserCardClick(user)}
           >
             <div className="user-card-header">
               <div className="user-card-title">
                 <h3>{user.name}</h3>
                 <span className="username">@{user.username}</span>
-              </div>
-              <div className="user-card-actions">
-                <button
-                  className="edit-button"
-                  onClick={(e) => handleEditClick(e, user)}
-                  title="Edit user"
-                >
-                  ✎
-                </button>
-                <button
-                  className="delete-button"
-                  onClick={(e) => handleDeleteClick(e, user)}
-                  title="Delete user"
-                >
-                  ×
-                </button>
               </div>
             </div>
             <p className="user-email">{user.email}</p>
@@ -135,6 +134,7 @@ const UserList: React.FC<UserListProps> = ({ onUserSelect, selectedUserId }) => 
           error={formError}
           onSubmit={handleSubmit}
           onClose={handleCloseModal}
+          onDelete={editingUser ? () => handleDeleteRequest(editingUser) : undefined}
         />
       )}
 
@@ -224,16 +224,45 @@ interface UserFormModalProps {
   error: string | null;
   onSubmit: (data: UserInput) => Promise<void>;
   onClose: () => void;
+  onDelete?: () => void;
 }
 
-const UserFormModal: React.FC<UserFormModalProps> = ({ user, error, onSubmit, onClose }) => {
+const UserFormModal: React.FC<UserFormModalProps> = ({ user, error, onSubmit, onClose, onDelete }) => {
   const [username, setUsername] = useState(user?.username || '');
   const [email, setEmail] = useState(user?.email || '');
   const [name, setName] = useState(user?.name || '');
   const [bio, setBio] = useState(user?.bio || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sparkles, setSparkles] = useState<Sparkle[]>([]);
 
-  const generateRandomData = () => {
+  const createSparkles = useCallback((e: React.MouseEvent) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    const newSparkles: Sparkle[] = [];
+    for (let i = 0; i < 24; i++) {
+      const angle = (i / 24) * Math.PI * 2 + Math.random() * 0.5;
+      const distance = 60 + Math.random() * 120;
+      
+      newSparkles.push({
+        id: Date.now() + i,
+        x: centerX + Math.cos(angle) * distance,
+        y: centerY + Math.sin(angle) * distance,
+        size: 0.5 + Math.random() * 0.7,
+        delay: Math.random() * 0.15,
+      });
+    }
+    
+    setSparkles(prev => [...prev, ...newSparkles]);
+    
+    setTimeout(() => {
+      setSparkles(prev => prev.filter(s => !newSparkles.find(ns => ns.id === s.id)));
+    }, 1000);
+  }, []);
+
+  const generateRandomData = (e: React.MouseEvent) => {
+    createSparkles(e);
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
     setName(`${firstName} ${lastName}`);
@@ -261,19 +290,43 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, error, onSubmit, on
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content user-form-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3>{user ? 'Edit User' : 'Create User'}</h3>
-          <button className="modal-close" onClick={onClose}>×</button>
+    <div className="drawer-overlay" onClick={onClose}>
+      {/* Sparkles */}
+      {sparkles.map(sparkle => (
+        <div
+          key={sparkle.id}
+          className="sparkle"
+          style={{
+            left: sparkle.x,
+            top: sparkle.y,
+            fontSize: `${sparkle.size}rem`,
+            animationDelay: `${sparkle.delay}s`,
+          }}
+        >
+          ✨
+        </div>
+      ))}
+      
+      <div className="drawer drawer-right" onClick={(e) => e.stopPropagation()}>
+        <div className="drawer-header">
+          <div className="drawer-title">
+            <span className="drawer-icon">🐝</span>
+            <h3>{user ? 'Edit Hive Member' : 'New Hive Member'}</h3>
+            {!user && (
+              <button 
+                type="button" 
+                className="generate-icon-button" 
+                onClick={generateRandomData}
+                title="Auto-fill with random data"
+              >
+                🪄
+              </button>
+            )}
+          </div>
+          <button className="drawer-close" onClick={onClose}>×</button>
         </div>
 
-        <form onSubmit={handleSubmit} className="user-form">
-          {!user && (
-            <button type="button" className="generate-random-button" onClick={generateRandomData}>
-              🎲 Generate User Data
-            </button>
-          )}
+        <form onSubmit={handleSubmit} className="drawer-form">
           
           {error && <div className="form-error">{error}</div>}
 
@@ -284,7 +337,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, error, onSubmit, on
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="johndoe"
+              placeholder="busy_bee_123"
               required
             />
           </div>
@@ -296,19 +349,19 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, error, onSubmit, on
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="john@example.com"
+              placeholder="bee@bookhivez.com"
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="name">Name</label>
+            <label htmlFor="name">Full Name</label>
             <input
               id="name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="John Doe"
+              placeholder="Buzzy McReader"
               required
             />
           </div>
@@ -319,19 +372,31 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, error, onSubmit, on
               id="bio"
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              placeholder="Tell us about yourself..."
-              rows={3}
+              placeholder="Tell us about your reading journey..."
+              rows={4}
             />
           </div>
 
-          <div className="form-actions">
+          <div className="drawer-actions">
             <button type="button" className="cancel-button" onClick={onClose}>
               Cancel
             </button>
             <button type="submit" className="submit-button" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : user ? 'Save Changes' : 'Create User'}
+              {isSubmitting ? 'Saving...' : user ? 'Save Changes' : 'Add to Hive'}
             </button>
           </div>
+
+          {user && onDelete && (
+            <div className="drawer-danger-zone">
+              <p className="danger-zone-label">Danger Zone</p>
+              <button type="button" className="drawer-delete-button" onClick={onDelete}>
+                🗑️ Delete User
+              </button>
+              <p className="danger-zone-hint">
+                This will delete all posts and relationships
+              </p>
+            </div>
+          )}
         </form>
       </div>
     </div>
