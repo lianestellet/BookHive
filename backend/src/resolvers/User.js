@@ -46,7 +46,20 @@ export const userResolvers = {
     },
     updateUser: (parent, args) => {
       const { id, input } = args;
+      const user = dataStore.users.getById(id);
+      if (!user) {
+        throw new Error('User not found');
+      }
       return dataStore.users.update(id, input);
+    },
+    deleteUser: (parent, args) => {
+      const { id } = args;
+      const user = dataStore.users.getById(id);
+      if (!user) {
+        throw new Error('User not found');
+      }
+      // This will cascade delete posts and relationships
+      return dataStore.users.delete(id);
     },
   },
 };

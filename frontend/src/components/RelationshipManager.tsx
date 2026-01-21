@@ -1,154 +1,242 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
-import { GET_RELATIONSHIPS, GET_USERS } from '../graphql/queries';
-import { FOLLOW_USER, UNFOLLOW_USER } from '../graphql/mutations';
+import React, { useState, useMemo } from 'react';
+import { useRelationships, useUsers } from '../hooks';
+import type { User } from '../types';
 import './RelationshipManager.css';
 
-interface RelationshipManagerProps {
-  userId: string;
-}
+const RelationshipManager: React.FC = () => {
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'following' | 'discover'>('following');
 
-interface Relationship {
-  id: string;
-  followerId: string;
-  followingId: string;
-  follower: {
-    id: string;
-    username: string;
-    name: string;
-  };
-  following: {
-    id: string;
-    username: string;
-    name: string;
-  };
-}
+  const { users, loading: usersLoading } = useUsers();
 
-interface User {
-  id: string;
-  username: string;
-  name: string;
-}
-
-const RelationshipManager: React.FC<RelationshipManagerProps> = ({ userId }) => {
-  const [followingId, setFollowingId] = useState('');
-  const [error, setError] = useState<string | null>(null);
-
-  const { loading: relationshipsLoading, data: relationshipsData, refetch } = useQuery<{
-    relationships: Relationship[];
-  }>(GET_RELATIONSHIPS, {
-    variables: { userId },
-  });
-
-  const { loading: usersLoading, data: usersData } = useQuery<{ users: User[] }>(GET_USERS);
-
-  const [followUser] = useMutation(FOLLOW_USER, {
-    refetchQueries: [{ query: GET_RELATIONSHIPS, variables: { userId } }],
-    onError: (err) => {
-      setError(err.message);
-    },
-    onCompleted: () => {
-      setFollowingId('');
-      setError(null);
-    },
-  });
-
-  const [unfollowUser] = useMutation(UNFOLLOW_USER, {
-    refetchQueries: [{ query: GET_RELATIONSHIPS, variables: { userId } }],
-    onError: (err) => {
-      setError(err.message);
-    },
-  });
-
-  const handleFollow = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!followingId) {
-      setError('Please select a user to follow');
-      return;
-    }
-
-    try {
-      await followUser({
-        variables: {
-          followerId: userId,
-          followingId,
-        },
-      });
-    } catch (err) {
-      // Error handled in onError
-    }
+  const handleUserClick = (user: User) => {
+    setSelectedUser(user);
+    setIsModalOpen(true);
+    setSearchQuery('');
+    setActiveTab('following');
   };
 
-  const handleUnfollow = async (relationshipId: string, followingIdToUnfollow: string) => {
-    if (window.confirm('Are you sure you want to unfollow this user?')) {
-      try {
-        await unfollowUser({
-          variables: {
-            followerId: userId,
-            followingId: followingIdToUnfollow,
-          },
-        });
-      } catch (err) {
-        // Error handled in onError
-      }
-    }
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedUser(null);
+    setSearchQuery('');
   };
 
-  if (relationshipsLoading || usersLoading) {
-    return <div className="loading">Loading relationships...</div>;
+  if (usersLoading) {
+    return <div className="loading">Loading users...</div>;
   }
-
-  const relationships = relationshipsData?.relationships || [];
-  const users = usersData?.users || [];
-  const availableUsers = users.filter((u) => u.id !== userId);
 
   return (
     <div className="relationship-manager">
-      {error && <div className="error-message">{error}</div>}
-
-      <div className="follow-section">
-        <h3>Follow User</h3>
-        <form onSubmit={handleFollow} className="follow-form">
-          <select
-            value={followingId}
-            onChange={(e) => setFollowingId(e.target.value)}
-            className="user-select"
+      <p className="instruction">Select a user to manage their relationships</p>
+      
+      <div className="user-grid">
+        {users.map((user: User) => (
+          <div
+            key={user.id}
+            className="user-grid-card"
+            onClick={() => handleUserClick(user)}
           >
-            <option value="">Select a user...</option>
-            {availableUsers.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.name} (@{user.username})
-              </option>
-            ))}
-          </select>
-          <button type="submit" className="follow-button">
-            Follow
-          </button>
-        </form>
+            <div className="user-avatar">
+              {user.name.charAt(0).toUpperCase()}
+            </div>
+            <h4>{user.name}</h4>
+            <p className="username">@{user.username}</p>
+            <div className="user-stats-mini">
+              <span>{user.followingCount} following</span>
+              <span>{user.followersCount} followers</span>
+            </div>
+          </div>
+        ))}
       </div>
 
-      <div className="following-section">
-        <h3>Following ({relationships.length})</h3>
-        {relationships.length === 0 ? (
-          <div className="empty-state">Not following anyone yet</div>
-        ) : (
-          <div className="relationship-list">
-            {relationships.map((relationship) => (
-              <div key={relationship.id} className="relationship-card">
-                <div className="relationship-info">
-                  <h4>{relationship.following.name}</h4>
-                  <p className="username">@{relationship.following.username}</p>
-                </div>
-                <button
-                  className="unfollow-button"
-                  onClick={() => handleUnfollow(relationship.id, relationship.followingId)}
-                >
-                  Unfollow
-                </button>
-              </div>
-            ))}
+      {isModalOpen && selectedUser && (
+        <RelationshipModal
+          user={selectedUser}
+          users={users}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          onClose={handleCloseModal}
+        />
+      )}
+    </div>
+  );
+};
+
+interface RelationshipModalProps {
+  user: User;
+  users: User[];
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  activeTab: 'following' | 'discover';
+  setActiveTab: (tab: 'following' | 'discover') => void;
+  onClose: () => void;
+}
+
+const RelationshipModal: React.FC<RelationshipModalProps> = ({
+  user,
+  users,
+  searchQuery,
+  setSearchQuery,
+  activeTab,
+  setActiveTab,
+  onClose,
+}) => {
+  const {
+    relationships,
+    loading: relationshipsLoading,
+    error,
+    follow,
+    unfollow,
+    clearError,
+  } = useRelationships(user.id);
+
+  const followingIds = useMemo(() => {
+    return new Set(relationships.map((r) => r.followingId));
+  }, [relationships]);
+
+  const filteredFollowing = useMemo(() => {
+    if (!searchQuery.trim()) return relationships;
+    const query = searchQuery.toLowerCase();
+    return relationships.filter(
+      (r) =>
+        r.following?.name.toLowerCase().includes(query) ||
+        r.following?.username.toLowerCase().includes(query)
+    );
+  }, [relationships, searchQuery]);
+
+  const discoverUsers = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    return users.filter((u) => {
+      // Exclude current user and already following
+      if (u.id === user.id || followingIds.has(u.id)) return false;
+      // Filter by search query
+      if (!searchQuery.trim()) return true;
+      return (
+        u.name.toLowerCase().includes(query) ||
+        u.username.toLowerCase().includes(query)
+      );
+    });
+  }, [users, user.id, followingIds, searchQuery]);
+
+  const handleFollow = async (followingId: string) => {
+    await follow(followingId);
+  };
+
+  const handleUnfollow = async (followingId: string) => {
+    if (window.confirm('Are you sure you want to unfollow this user?')) {
+      await unfollow(followingId);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="modal-user-info">
+            <div className="modal-avatar">
+              {user.name.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <h3>{user.name}</h3>
+              <p className="username">@{user.username}</p>
+            </div>
+          </div>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+
+        {error && (
+          <div className="error-message">
+            {error}
+            <button onClick={clearError} className="dismiss-error">×</button>
           </div>
         )}
+
+        <div className="modal-tabs">
+          <button
+            className={activeTab === 'following' ? 'active' : ''}
+            onClick={() => setActiveTab('following')}
+          >
+            Following ({relationships.length})
+          </button>
+          <button
+            className={activeTab === 'discover' ? 'active' : ''}
+            onClick={() => setActiveTab('discover')}
+          >
+            Discover Users
+          </button>
+        </div>
+
+        <div className="modal-search">
+          <input
+            type="text"
+            placeholder={activeTab === 'following' ? 'Search followed users...' : 'Search users to follow...'}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+
+        <div className="modal-body">
+          {relationshipsLoading ? (
+            <div className="loading">Loading...</div>
+          ) : activeTab === 'following' ? (
+            <div className="user-list-modal">
+              {filteredFollowing.length === 0 ? (
+                <div className="empty-state">
+                  {searchQuery ? 'No matching users found' : 'Not following anyone yet'}
+                </div>
+              ) : (
+                filteredFollowing.map((relationship) => (
+                  <div key={relationship.id} className="user-list-item">
+                    <div className="user-list-avatar">
+                      {relationship.following?.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="user-list-info">
+                      <h4>{relationship.following?.name}</h4>
+                      <p className="username">@{relationship.following?.username}</p>
+                    </div>
+                    <button
+                      className="unfollow-button"
+                      onClick={() => handleUnfollow(relationship.followingId)}
+                    >
+                      Unfollow
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          ) : (
+            <div className="user-list-modal">
+              {discoverUsers.length === 0 ? (
+                <div className="empty-state">
+                  {searchQuery ? 'No matching users found' : 'No more users to follow'}
+                </div>
+              ) : (
+                discoverUsers.map((discoverUser) => (
+                  <div key={discoverUser.id} className="user-list-item">
+                    <div className="user-list-avatar">
+                      {discoverUser.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="user-list-info">
+                      <h4>{discoverUser.name}</h4>
+                      <p className="username">@{discoverUser.username}</p>
+                    </div>
+                    <button
+                      className="follow-button"
+                      onClick={() => handleFollow(discoverUser.id)}
+                    >
+                      Follow
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

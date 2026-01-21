@@ -54,7 +54,7 @@ function App() {
         {activeTab === 'relationships' && (
           <div className="content-section">
             <h2>Relationships</h2>
-            <RelationshipManager userId={selectedUserId || '1'} />
+            <RelationshipManager />
           </div>
         )}
       </main>

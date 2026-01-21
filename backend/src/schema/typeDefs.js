@@ -76,6 +76,7 @@ export const typeDefs = `
   type Mutation {
     createUser(input: UserInput!): User!
     updateUser(id: ID!, input: UpdateUserInput!): User
+    deleteUser(id: ID!): Boolean!
     createPost(input: PostInput!): Post!
     deletePost(id: ID!): Boolean!
     followUser(followerId: ID!, followingId: ID!): Relationship!

@@ -6,10 +6,37 @@
   margin-bottom: 2rem;
 }
 
-.post-form h3 {
-  margin-top: 0;
+.post-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 1rem;
+}
+
+.post-form-header h3 {
+  margin: 0;
   color: #2c3e50;
+}
+
+.post-form-header .generate-random-button {
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.post-form-header .generate-random-button:hover {
+  background: linear-gradient(135deg, #8e44ad, #7d3c98);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(142, 68, 173, 0.3);
+}
+
+.post-form-header .generate-random-button:active {
+  transform: translateY(0);
 }
 
 .form-group {
@@ -75,4 +102,74 @@
   border-radius: 4px;
   margin-bottom: 1rem;
   border: 1px solid #e74c3c;
+}
+
+/* User Select Dropdown Styles */
+.user-select-container {
+  position: relative;
+}
+
+.user-search-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.user-search-input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.user-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.user-dropdown-item {
+  padding: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.15s;
+}
+
+.user-dropdown-item:hover {
+  background: #f0f7ff;
+}
+
+.user-dropdown-item.selected {
+  background: #e8f4fd;
+}
+
+.user-dropdown-item .user-name {
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.user-dropdown-item .user-username {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+}
+
+.user-dropdown-empty {
+  padding: 0.75rem;
+  color: #7f8c8d;
+  text-align: center;
+  font-style: italic;
 }

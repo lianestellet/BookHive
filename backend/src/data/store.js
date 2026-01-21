@@ -95,6 +95,22 @@ export const dataStore = {
       users[index] = { ...users[index], ...userData };
       return users[index];
     },
+    delete: (id) => {
+      const index = users.findIndex((u) => u.id === id);
+      if (index === -1) return false;
+      
+      // Cascade delete: remove all posts by this user
+      posts = posts.filter((p) => p.userId !== id);
+      
+      // Cascade delete: remove all relationships where user is follower or following
+      relationships = relationships.filter(
+        (r) => r.followerId !== id && r.followingId !== id
+      );
+      
+      // Remove the user
+      users.splice(index, 1);
+      return true;
+    },
   },
   posts: {
     getAll: () => posts,

@@ -19,6 +19,12 @@ export const UPDATE_USER = gql`
   ${USER_FRAGMENT}
 `;
 
+export const DELETE_USER = gql`
+  mutation DeleteUser($id: ID!) {
+    deleteUser(id: $id)
+  }
+`;
+
 export const CREATE_POST = gql`
   mutation CreatePost($input: PostInput!) {
     createPost(input: $input) {
