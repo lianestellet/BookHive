@@ -44,8 +44,8 @@ function App() {
         </div>
       </header>
 
-      <main className="app-main">
-        <div className="content-section buzz-in" key={activeTab}>
+      <main className="app-main buzz-in">
+        <div className="content-section">
           {activeTab === 'hive' && (
             <>
               <div className="section-header">
